@@ -55,7 +55,17 @@ else{
  <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet"> 
     <link href="build/css/custom.min.css" rel="stylesheet">
 
-      <link href="dt/datatables.min.css" rel="stylesheet">
+
+      <link href="css/daterangepicker.css" rel="stylesheet">
+      <link rel="stylesheet" href="dt/datatables.min.css">
+      <link href="css/card1.css" rel="stylesheet">
+      <!-- jQuery -->
+      <script src="vendors/jquery/dist/jquery.min.js"></script>
+      <script src="js/moment.min.js"></script>
+      <!-- Bootstrap -->
+      <script src="vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+      <script src="js/kendo.core.min.js"></script>
+
 
       <!--
  <link href="http://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css" rel="stylesheet">
@@ -65,124 +75,7 @@ else{
       <link href="https://cdn.datatables.net/buttons/1.3.1/css/buttons.dataTables.min.css"  rel="stylesheet">
 -->
 
-      <style>
-    .card1 {
-  border-radius: 6px;
-  box-shadow: 0 2px 2px rgba(204, 197, 185, 0.5);
-  background-color: #FFFFFF;
-  color: #252422;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
-  font-family: 'Ubuntu', sans-serif;
-  height : 100%;
-}
-        
-.card {
-  border-radius: 6px;
-  box-shadow: 0 2px 2px rgba(204, 197, 185, 0.5);
-  background-color: #FFFFFF;
-  color: #252422;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
-  font-family: 'Ubuntu', sans-serif;
-  height : 100%;
-}
-.card .content {
-  padding: 15px 15px 10px 15px;
-}
-.card .header {
-  padding: 20px 20px 0;
-}
-.card .description {
-  font-size: 16px;
-  color: #66615b;
-}
-.card h6 {
-  font-size: 12px;
-  margin: 0;
-}
-.card .category,
-.card label {
-  font-size: 14px;
-  font-weight: 400;
-  color: #9A9A9A;
-  margin-bottom: 0px;
-}
-.card .category i,
-.card label i {
-  font-size: 16px;
-}
-.card label {
-  font-size: 15px;
-  margin-bottom: 5px;
-}
-.card .title {
-  margin: 0;
-  color: #252422;
-  font-weight: 300;
-}
-.card .avatar {
-  width: 50px;
-  height: 50px;
-  overflow: hidden;
-  border-radius: 50%;
-  margin-right: 5px;
-}
-.card .footer {
-  padding: 0;
-  line-height: 30px;
-}
-.card .footer .legend {
-  padding: 5px 0;
-}
-.card .footer hr {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.card .stats {
-  color: #a9a9a9;
-  font-weight: 300;
-}
-.card .stats i {
-  margin-right: 2px;
-  min-width: 15px;
-  display: inline-block;
-}
-.card .footer div {
-  display: inline-block;
-}
-.card .author {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.card .author i {
-  font-size: 14px;
-}
-.card.card-separator:after {
-  height: 100%;
-  right: -15px;
-  top: 0;
-  width: 1px;
-  background-color: #DDDDDD;
-  content: "";
-  position: absolute;
-}
-.card .ct-chart {
-  margin: 30px 0 30px;
-  height: auto;
-}
-.card .table tbody td:first-child,
-.card .table thead th:first-child {
-  padding-left: 15px;
-}
-.card .table tbody td:last-child,
-.card .table thead th:last-child {
-  padding-right: 15px;
-}
-    </style>
+
   </head>
 
   <body class="nav-md">
@@ -228,6 +121,12 @@ else{
                                 <h4 class="title">Projects Financials</h4>
                                 <p class="category">All MDAs Projects Showing Financial Details </p>
                             </div>
+
+                            <div id="daterange"  style="background: #fff; margin-left: 2%; cursor: pointer; padding: 5px 10px; border: 1px solid #0b97c4;  width: 30%">
+                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                <span></span> <b class="caret"></b>
+                            </div>
+
                             <div class="content">
                                 <div id="chartActivity" class="ct-chart">
                                     
@@ -238,6 +137,7 @@ else{
             <th>PROJECT SUM</th>
             <th>TOTAL CERTIFICATES PAID</th>
             <th>TOTAL VARIATIONS</th>
+            <th>OUTSTANDING PAYMENT</th>
              <th>Action</th>
         </tr>
       </thead>
@@ -245,12 +145,14 @@ else{
     //  $conn = mysqli_connect('localhost', 'user', 'password', 'db', 'port');
    //    $query1 = "SELECT `PROJECTID`, `PROCURINGENTITY`, `TITLE`, `DESCRIPTION`, `STATUS`, `LOCATION`, `LGA`, `DATEOFAWARD`, `DURATIONOFCONTRACT`,  `CONTRACTSUM` FROM `projectdetails` ";
 
+    $yr1 = date('Y')."-01-01";
+    $yr = date('Y-m-d');
 
     $query1 = "SELECT projectdetails.PROJECTID, projectdetails.CONTRACTSUM, 
                (SELECT SUM(AMOUNT) from certificates WHERE projectdetails.PROJECTID = certificates.PROJECTID GROUP BY certificates.PROJECTID) as cAmount, 
                (SELECT SUM(AMOUNT) from variations WHERE projectdetails.PROJECTID = variations.PROJECTID GROUP BY variations.PROJECTID ) as vAmount FROM projectdetails 
                LEFT JOIN variations ON projectdetails.PROJECTID = variations.PROJECTID
-               LEFT JOIN certificates ON projectdetails.PROJECTID = certificates.PROJECTID GROUP BY projectdetails.PROJECTID ";
+               LEFT JOIN certificates ON projectdetails.PROJECTID = certificates.PROJECTID WHERE (DATEOFAWARD) BETWEEN '".$yr1."' AND '".$yr."'  GROUP BY projectdetails.PROJECTID ";
 
     $result = mysqli_query($con, $query1) or die('Query fail: ' . mysqli_error());
     ?>
@@ -280,6 +182,30 @@ else{
                        }
 
                   ?></td>
+
+
+              <td class="currency-format" style="text-transform: uppercase"><?php
+
+                  if( is_null($row[3]) )
+                  {
+                      $val3 = 0.00;
+                  }
+                  else {
+                      $val3 = $row[3];
+                  }
+
+                  if( is_null($row[2]) )
+                  {
+                      $val2 = 0.00;
+                  }
+                  else {
+                      $val2 = $row[2];
+                  }
+
+                  echo $row[1] + $val3 - $val2;
+
+                  ?></td>
+
               <td>
                   <button data-toggle="modal" data-target="#view-modal" data-id="<?php echo $row[0]; ?>" id="getUser" class="btn btn-sm btn-info"> View</button>
               </td>
@@ -311,12 +237,7 @@ else{
                
           <div class="clearfix"></div>                      
             </div>
-            
-            
-            <!--  Another Row here -->
 
-
-              <!-- end Col sm 12 -->
 
              <div class="clearfix"></div>
             
@@ -336,10 +257,6 @@ else{
         <!-- /footer content -->
       </div>
     </div>
-
-
-
-
 
 
 
@@ -485,34 +402,12 @@ else{
 
 
 
-    <!-- jQuery -->
-    <script src="vendors/jquery/dist/jquery.min.js"></script>
-    <!-- Bootstrap -->
-    <script src="vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+
     <!-- FastClick -->
     <script src="vendors/fastclick/lib/fastclick.js"></script>
     <!-- NProgress -->
     <script src="vendors/nprogress/nprogress.js"></script>
-
     <script src="dt/datatables.min.js"></script>
-
-    <!--
-
-    <script src="http://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-     <script src="vendors/datatables.net/js/jquery.dataTables.min.js"></script>
-
-    <script type="text/javascript" src="https://cdn.datatables.net/tabletools/2.2.4/js/dataTables.tableTools.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/tabletools/2.2.2/swf/copy_csv_xls_pdf.swf"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/buttons.flash.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
-    <script type="text/javascript" src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js"></script>
-    <script type="text/javascript" src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/buttons.print.min.js"></script>
-
--->
 
 
     <!-- Custom Theme Scripts -->
@@ -521,6 +416,7 @@ else{
     <script src="js/autofilter.js"></script>
 
 	<script src="js/kendo.core.min.js"></script>
+    <script src="js/daterangepicker.js"></script>
 
 
 
@@ -535,9 +431,112 @@ else{
 		  $(element).text(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
 		//console.log(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
 	});
-	
+
 	</script>
 
+
+    <script>
+        $(document).ready(function(){
+
+            // create the required start and end dates
+            var start = moment(new Date(new Date().getFullYear(), 0, 1));
+            var end = moment(new Date());
+
+            // initialise date range widget
+            $('#daterange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')]
+                },
+                linkedCalendars: false,
+                "locale": {
+                    "format": "DD/MM/YYYY",
+                    "separator": " - ",
+                    "applyLabel": "Apply",
+                    "cancelLabel": "Cancel",
+                    "fromLabel": "From",
+                    "toLabel": "To",
+                    "customRangeLabel": "Custom",
+                    "weekLabel": "W",
+                    "daysOfWeek": [
+                        "Su",
+                        "Mo",
+                        "Tu",
+                        "We",
+                        "Th",
+                        "Fr",
+                        "Sa"
+                    ],
+                    "monthNames": [
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December"
+                    ],
+                    "firstDay": 1
+                }
+            }, updateDateRange);
+
+            updateDateRange(start, end);
+        });
+
+        // function used to update the the date range display
+        function updateDateRange(start, end){
+            $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        }
+
+
+        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+            console.log(picker.startDate.format('YYYY-MM-DD'));
+            console.log(picker.endDate.format('YYYY-MM-DD'));
+
+            var startYr = picker.startDate.format('YYYY-MM-DD');
+            var endYr = picker.endDate.format('YYYY-MM-DD');
+
+            var x = $.ajax({
+                type: "POST",
+                url: 'php/oth/allfinancials.php',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: "yr=" + encodeURIComponent(startYr) + "&yr2=" + encodeURIComponent(endYr),
+                dataType: "text"
+            });
+
+            x.done(function(serverResponse)
+            {
+                var servervalue=serverResponse.trim();
+                if(servervalue=='error')
+                {
+                    //swal("Error!", "An error occured, please try again later ", "error");
+                }
+
+                else
+                {
+                    $('#myTable').html(serverResponse.trim());
+
+                    $('.currency-format').each(function(index, element) {
+                        $(element).text(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
+                        console.log(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
+                    });
+                }
+            });
+
+            x.fail(function(){
+                // swal("Server Error!", "Server could not process this request, please try again later!", "error");
+            });
+
+        })
+
+    </script>
 
 
 
