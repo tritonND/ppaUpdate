@@ -138,6 +138,9 @@ else{
       </thead>
     <?php
 
+
+    $yr1 = date('Y')."-01-01";
+    $yr = date('Y-m-d');
     $conn = mysqli_connect("localhost", "root", "minowss", "edpms");
     $query1 = "CALL myProc1('".$yr1."', '".$yr."')";
     // $query1 = "CALL myProc3('".$yr."')";
@@ -161,7 +164,7 @@ else{
                 else{  echo (($row[1] + $row[3])  - $row[2]);  }
                 ?></td>
             <td>
-                <button data-toggle="modal" data-target="#view-modal" data-id="<?php echo $row[0]; ?>" id="getUser" class="btn btn-sm btn-info"> View</button>
+                <button data-toggle="modal" data-target="#view-modal" data-id="<?php echo $row[0].'+'.$yr1.'+'.$yr; ?>" id="getUser" class="btn btn-sm btn-info"> View</button>
             </td>
         </tr>
     <?php } $conn->close(); ?>
@@ -218,7 +221,7 @@ else{
 
 
     <div id="view-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <form name="modform" id="modform">
                 <div class="modal-content">
 
@@ -273,20 +276,10 @@ else{
 
 
 
-    <!-- jQuery -->
-    <script src="vendors/jquery/dist/jquery.min.js"></script>
-    <!-- Bootstrap -->
-    <script src="vendors/bootstrap/dist/js/bootstrap.min.js"></script>
-    <!-- FastClick -->
     <script src="vendors/fastclick/lib/fastclick.js"></script>
     <!-- NProgress -->
     <script src="vendors/nprogress/nprogress.js"></script>
-
     <script src="dt/datatables.min.js"></script>
-    <!--
-    <script src="http://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-     <script src="vendors/datatables.net/js/jquery.dataTables.min.js"></script>
-    -->
 
 
     <!-- Custom Theme Scripts -->
@@ -294,10 +287,12 @@ else{
     <script src="js/searchtable.js"></script>
     <script src="js/autofilter.js"></script>
 
-
+    <script src="js/kendo.core.min.js"></script>
     <script src="js/daterangepicker.js"></script>
-    <script src="js/myjs.js"></script>
-<script>
+
+
+
+    <script>
 	var pf = kendo.toString(kendo.parseFloat($('#projfund').text().trim()), 'n2');
 	$('#projfund').text(pf);
 	//console.log(pf
@@ -308,6 +303,111 @@ else{
 	});
 	
 	</script>
+
+
+    <script>
+        $(document).ready(function(){
+
+            // create the required start and end dates
+            var start = moment(new Date(new Date().getFullYear(), 0, 1));
+            var end = moment(new Date());
+
+            // initialise date range widget
+            $('#daterange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')]
+                },
+                linkedCalendars: false,
+                "locale": {
+                    "format": "DD/MM/YYYY",
+                    "separator": " - ",
+                    "applyLabel": "Apply",
+                    "cancelLabel": "Cancel",
+                    "fromLabel": "From",
+                    "toLabel": "To",
+                    "customRangeLabel": "Custom",
+                    "weekLabel": "W",
+                    "daysOfWeek": [
+                        "Su",
+                        "Mo",
+                        "Tu",
+                        "We",
+                        "Th",
+                        "Fr",
+                        "Sa"
+                    ],
+                    "monthNames": [
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December"
+                    ],
+                    "firstDay": 1
+                }
+            }, updateDateRange);
+
+            updateDateRange(start, end);
+        });
+
+
+        // function used to update the the date range display
+        function updateDateRange(start, end){
+            $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        }
+
+        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+            console.log(picker.startDate.format('YYYY-MM-DD'));
+            console.log(picker.endDate.format('YYYY-MM-DD'));
+
+            var startYr = picker.startDate.format('YYYY-MM-DD');
+            var endYr = picker.endDate.format('YYYY-MM-DD');
+
+            var x = $.ajax({
+                type: "POST",
+                url: 'php/oth/lgafinancials.php',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: "yr=" + encodeURIComponent(startYr) + "&yr2=" + encodeURIComponent(endYr),
+                dataType: "text"
+            });
+
+            x.done(function(serverResponse)
+            {
+                var servervalue=serverResponse.trim();
+                if(servervalue=='error')
+                {
+                    //swal("Error!", "An error occured, please try again later ", "error");
+                }
+
+                else
+                {
+                    $('#myTable').html(serverResponse.trim());
+
+                    $('.currency-format').each(function(index, element) {
+                        $(element).text(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
+                        console.log(kendo.toString(kendo.parseFloat($(element).text().trim()), 'n2'));
+                    });
+                }
+            });
+
+            x.fail(function(){
+                // swal("Server Error!", "Server could not process this request, please try again later!", "error");
+            });
+
+
+        });
+
+    </script>
 
 
 
@@ -326,19 +426,25 @@ else{
                 //console.log(uid);
                 //console.log("hiiiss");
 
+                var sparts = uid.split('+',3);
+                var duid = sparts[0];
+                var yr = sparts[1];
+                var yr2 = sparts[2];
+                console.log(duid);
+                console.log(yr);
+                console.log(yr2);
+
+
                 $.ajax({
                     url: 'getinfoc3.php',
                     type: 'POST',
-                    data: 'id='+uid,
+                   // data: 'id='+uid,
+                    data: "id="+encodeURIComponent(duid)+"&yr="+encodeURIComponent(yr)+"&yr2="+encodeURIComponent(yr2),
                     dataType: 'json'
                 })
                     .done(function(data){
 
-                        //console.log("noow3");
-                        //console.log(data.length);
-                        //  var tbl=$("<table/>").attr("id","mytable");
-                        //$("#div1").append(tbl);
-
+                       
                         $('#myMod1').html("");
                         $('#cname').html("");
                         $('#tcs').html("");
@@ -346,7 +452,7 @@ else{
                         $('#tv').html("");
                         $('#outs').html("");
 
-                        $('#cname').append(uid);
+                        $('#cname').append(duid);
 
                         var totals1 = 0;
                         var totals2 = 0;

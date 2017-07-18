@@ -241,7 +241,7 @@ else{
 
   
     <div id="view-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-             <div class="modal-dialog"> 
+             <div class="modal-dialog modal-lg">
                  <form name="modform" id="modform">
                   <div class="modal-content"> 
                   
@@ -324,8 +324,6 @@ else{
 
 
     <script>
-
-
         $(document).ready(function(){
 
             // create the required start and end dates
