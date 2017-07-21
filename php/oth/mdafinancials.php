@@ -14,15 +14,16 @@ require_once ("../dbconnect.php");
  $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
 
 
- if ($yr != 0){
-     echo " <table id=\"myTable\" class=\"table table-striped table-bordered table-hover\">";
+
+     echo " <table id=\"myTable\" class=\"table table-condensed table-striped table-bordered table-hover\">";
      echo "<thead class=\"bg-primary\">";
      echo "<tr>";
      echo "<th>MDA</th>";
      echo "<th>PROJECT SUM</th>";
-     echo "<th>TOTAL CERTIFICATES PAID</th>";
+     echo "<th>CERTIFICATES PAID</th>";
      echo "<th>OUTSTANDING PAYMENTS</th>";
-     echo "<th>Action</th>";
+     echo "<th>NUM. OF PROJECTS</th>";
+     echo "<th>VIEW</th>";
      echo "</tr>";
      echo "</thead>";
      echo "<tbody>";
@@ -52,7 +53,7 @@ require_once ("../dbconnect.php");
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[2]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[3]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".($user[2] + $user[4] - $user[3])."</td>";
-
+             echo "<td style=\"text-transform: uppercase\">".$user[6]."</td>";
              // echo "<td> <button data-toggle=\"modal\" data-target=\"#view-modal\" data-id=".$user[1]." id=\"getUser\" class=\"btn btn-sm btn-info\"> View</button> </td>";
              echo "<td> <button data-toggle=\"modal\" data-target=\"#view-modal\" data-id='$user[1]+$yr+$yr2' id=\"getUser\" class=\"btn btn-sm btn-info\"> View</button> </td>";
 
@@ -66,7 +67,7 @@ require_once ("../dbconnect.php");
 
      else echo "No data";
 
- }
+
 
 
 

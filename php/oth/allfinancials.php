@@ -17,7 +17,7 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
      echo " <table id=\"myTable\" class=\"table table-striped table-bordered table-hover\">";
      echo "<thead class=\"bg-primary\">";
      echo "<tr>";
-     echo "<th>PROJECTID</th>";
+     echo "<th>REQUISITION ID</th>";
      echo "<th>PROJECT SUM</th>";
      echo "<th>TOTAL CERTIFICATES PAID</th>";
      echo "<th>TOTAL VARIATIONS</th>";
@@ -32,7 +32,7 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
 
      $query1 = "SELECT projectdetails.PROJECTID, projectdetails.CONTRACTSUM, 
                (SELECT SUM(AMOUNT) from certificates WHERE projectdetails.PROJECTID = certificates.PROJECTID GROUP BY certificates.PROJECTID) as cAmount, 
-               (SELECT SUM(AMOUNT) from variations WHERE projectdetails.PROJECTID = variations.PROJECTID GROUP BY variations.PROJECTID ) as vAmount FROM projectdetails 
+               (SELECT SUM(AMOUNT) from variations WHERE projectdetails.PROJECTID = variations.PROJECTID GROUP BY variations.PROJECTID ) as vAmount, projectdetails.REQID FROM projectdetails 
                LEFT JOIN variations ON projectdetails.PROJECTID = variations.PROJECTID
                LEFT JOIN certificates ON projectdetails.PROJECTID = certificates.PROJECTID WHERE DATEOFAWARD BETWEEN '".$yr."' AND '".$yr2."' GROUP BY projectdetails.PROJECTID ";
 
@@ -47,6 +47,10 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
 
          while($user=mysqli_fetch_array($result))
          {
+             if(is_null($user[4]))
+             {$temp = "Nil";}
+             else $temp = $user[4];
+
              if (is_null($user[3])) { $val = 0.00;}
              else{$val = $user[3];}
 
@@ -60,7 +64,7 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
              }
 
              echo "<tr>";
-             echo "<td style=\"text-transform: uppercase\">".$user[0]."</td>";
+             echo "<td style=\"text-transform: uppercase\">".$temp."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[1]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$val2."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$val."</td>";
@@ -97,7 +101,13 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
      echo "<tbody>";
 
      // $query1 = "SELECT lga, count(*) FROM projectdetails WHERE YEAR(DATEOFAWARD)='".$yr."' order BY lga LIMIT 5";
-     $query1 = "SELECT projectdetails.PROJECTID, projectdetails.CONTRACTSUM, (SELECT SUM(AMOUNT) from certificates WHERE projectdetails.PROJECTID = certificates.PROJECTID GROUP BY certificates.PROJECTID) as cAmount, (SELECT SUM(AMOUNT) from variations WHERE projectdetails.PROJECTID = variations.PROJECTID GROUP BY variations.PROJECTID ) as vAmount FROM projectdetails JOIN variations ON projectdetails.PROJECTID = variations.PROJECTID OR variations.PROJECTID = \"aa111\" JOIN certificates ON projectdetails.PROJECTID = certificates.PROJECTID  WHERE DATEOFAWARD BETWEEN '".$yr."'  AND '".$yr2."' GROUP BY projectdetails.PROJECTID ";
+     $query1 = "SELECT projectdetails.PROJECTID, projectdetails.CONTRACTSUM, 
+          (SELECT SUM(AMOUNT) from certificates WHERE projectdetails.PROJECTID = certificates.PROJECTID GROUP BY certificates.PROJECTID) as cAmount,
+           (SELECT SUM(AMOUNT) from variations WHERE projectdetails.PROJECTID = variations.PROJECTID GROUP BY variations.PROJECTID ) as vAmount,
+            projectdetails.REQID FROM projectdetails 
+            JOIN variations ON projectdetails.PROJECTID = variations.PROJECTID OR variations.PROJECTID = \"aa111\" 
+            JOIN certificates ON projectdetails.PROJECTID = certificates.PROJECTID  
+            WHERE DATEOFAWARD BETWEEN '".$yr."'  AND '".$yr2."' GROUP BY projectdetails.PROJECTID ";
 
      $result = mysqli_query($con, $query1);
 
@@ -107,8 +117,12 @@ $yr2 =  mysqli_real_escape_string($con, $_POST['yr2']);
 
          while($user=mysqli_fetch_array($result))
          {
+             if(is_null($user[4]))
+             {echo "Nil";}
+             else echo $user[4];
+
              echo "<tr>";
-             echo "<td  style=\"text-transform: uppercase\">".$user[0]."</td>";
+             echo "<td  style=\"text-transform: uppercase\">".$user[4]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[1]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[2]."</td>";
              echo "<td class=\"currency-format\" style=\"text-transform: uppercase\">".$user[3]."</td>";
